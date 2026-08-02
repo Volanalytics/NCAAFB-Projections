@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>About</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"><style>
+:root{
+  --field:#08161B; --panel:#102A31; --panel-2:#173A44;
+  --line:#1F5058;
+  --chalk:#EAF0F6; --muted:#8199B0; --accent:#3FD0C9;
+  --gain:#8CC63F; --loss:#E8615C;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--field);color:var(--chalk);
+  font-family:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:14px;line-height:1.55;-webkit-text-size-adjust:100%;
+  font-variant-numeric:tabular-nums}
+a{color:var(--accent);text-decoration:none}
+header{border-bottom:1px solid var(--line);background:var(--panel);
+  position:sticky;top:0;z-index:5}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+.brand{display:flex;align-items:baseline;gap:12px;padding:14px 0 0}
+.brand h1{font-weight:700;font-size:22px;letter-spacing:.14em;
+  text-transform:uppercase;margin:0}
+.brand .stamp{font-size:11px;color:var(--muted);letter-spacing:.08em}
+nav{display:flex;gap:4px;padding:10px 0 0}
+nav a{padding:8px 14px;border-radius:6px 6px 0 0;font-size:13px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  font-weight:500}
+nav a.on{background:var(--field);color:var(--chalk);
+  box-shadow:inset 0 2px 0 var(--accent)}
+main{padding:22px 0 60px}
+.note{color:var(--muted);font-size:13px;margin:0 0 18px;max-width:70ch}
+h2{font-weight:700;font-size:16px;letter-spacing:.12em;
+  text-transform:uppercase;margin:26px 0 10px;color:var(--chalk)}
+h2:first-of-type{margin-top:0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-weight:500;font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);
+  white-space:nowrap;background:var(--field)}
+td{padding:9px 10px;border-bottom:1px solid rgba(36,64,92,.5)}
+tbody tr:hover{background:var(--panel)}
+.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.team{font-weight:500}
+.fav{color:var(--accent)}
+.date{color:var(--muted);font-size:13px}
+.pos{color:var(--gain)} .neg{color:var(--loss)}
+.pill{display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;
+  letter-spacing:.08em;text-transform:uppercase;background:var(--panel-2);
+  color:var(--muted)}
+/* scoreboard: the signature element */
+.board{display:none}
+.game{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  margin:0 0 10px;overflow:hidden}
+.game .kick{padding:7px 12px;background:var(--panel-2);font-size:11px;
+  letter-spacing:.08em;color:var(--muted);
+  display:flex;justify-content:space-between;align-items:center}
+.game .side{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 12px}
+.game .side + .side{border-top:1px solid rgba(36,64,92,.6)}
+.game .side .nm{font-weight:500;font-size:14px}
+.game .side .sc{font-weight:700;font-size:26px;line-height:1;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.game .side.win .sc{color:var(--accent)}
+.game .foot{padding:7px 12px;border-top:1px solid rgba(36,64,92,.6);
+  font-size:11px;color:var(--muted);display:flex;gap:14px;
+  letter-spacing:.06em}
+@media(max-width:760px){
+  .tbl{display:none}
+  .board{display:block}
+  .wrap{padding:0 12px}
+}
+th[data-t]{cursor:pointer;user-select:none;position:relative}
+th[data-t]:hover{color:var(--chalk)}
+th[data-t]::after{content:"";opacity:.35;margin-left:6px;font-size:10px}
+th[data-t][data-dir="asc"]::after{content:"↑";opacity:1;color:var(--accent)}
+th[data-t][data-dir="desc"]::after{content:"↓";opacity:1;color:var(--accent)}
+th[data-t]:not([data-dir])::after{content:"↕"}
+.tools{display:flex;gap:8px;align-items:center;margin:0 0 14px}
+.tools input{flex:1;background:var(--panel);color:var(--chalk);
+  border:1px solid var(--line);border-radius:6px;padding:9px 11px;
+  font-family:inherit;font-size:13px}
+.tools input::placeholder{color:var(--muted)}
+.tools .count{font-size:11px;color:var(--muted);letter-spacing:.08em;
+  white-space:nowrap}
+tr.row{cursor:pointer}
+tr.row td:first-child{position:relative;padding-left:22px}
+tr.row td:first-child::before{content:"A";position:absolute;left:8px;
+  color:var(--muted);transition:transform .12s}
+tr.row.open td:first-child::before{transform:rotate(90deg);color:var(--accent)}
+tr.det{display:none}
+tr.det.show{display:table-row}
+tr.det > td{background:var(--panel);padding:14px 16px}
+.mx{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.mx h4{margin:0 0 8px;font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:500}
+.mx table{font-size:12px}
+.mx td{padding:3px 6px;border:0}
+.mx .k{color:var(--muted)}
+.mx .v{text-align:right;font-variant-numeric:tabular-nums}
+.game .det2{display:none;padding:12px;border-top:1px solid var(--line);
+  background:var(--panel-2)}
+.game.open .det2{display:block}
+.game .kick{cursor:pointer}
+@media(max-width:760px){.mx{grid-template-columns:1fr}}
+.sorter{display:none;margin:0 0 12px;gap:8px;align-items:center}
+.sorter label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted)}
+.sorter select{background:var(--panel);color:var(--chalk);
+  border:1px solid var(--line);border-radius:6px;padding:7px 9px;
+  font-family:inherit;font-size:13px;flex:1}
+.sorter button{background:var(--panel);color:var(--chalk);
+  border:1px solid var(--line);border-radius:6px;padding:7px 11px;
+  font-family:inherit;font-size:13px;cursor:pointer}
+@media(max-width:760px){.sorter{display:flex}}
+.prose{max-width:78ch}
+.prose h3{font-size:14px;letter-spacing:.1em;text-transform:uppercase;
+  margin:28px 0 8px;color:var(--accent);font-weight:500}
+.prose p{margin:0 0 12px;color:#C4D2DF}
+.prose code{background:var(--panel);padding:1px 5px;border-radius:4px;
+  font-size:12px;color:var(--chalk)}
+.prose ul{margin:0 0 14px;padding-left:18px;color:#C4D2DF}
+.prose li{margin:0 0 6px}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 20px}
+.toc a{background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  padding:5px 10px;font-size:12px;color:var(--chalk)}
+.toc a:hover{border-color:var(--accent)}
+.hit{color:var(--gain)} .miss{color:var(--loss)}
+.big{display:flex;gap:22px;flex-wrap:wrap;margin:0 0 20px}
+.big div{background:var(--panel);border:1px solid var(--line);
+  border-radius:8px;padding:12px 16px;min-width:120px}
+.big .n{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.big .l{font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-top:2px}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:12px;
+  padding:16px 0 40px}
+</style></head>
+<body><header><div class="wrap">
+<div class="brand"><h1>Projections</h1>
+<span class="stamp">NCAA FB &middot; built Aug 02, 2026 13:56</span></div>
+<nav><a href="index.html" class="">Games</a><a href="ev.html" class="">Market</a><a href="teams.html" class="">Teams</a><a href="tracking.html" class="">Tracking</a><a href="about.html" class="on">About</a></nav></div></header>
+<main><div class="wrap"><div class='toc'><a href='#values'>Every value on this site</a><a href='#ep'>The expected points model</a><a href='#attr'>Attributing plays to players</a><a href='#shrink'>Shrinkage</a><a href='#proj'>Team and game projections</a><a href='#market'>Market comparison and EV</a><a href='#schema'>Data model</a><a href='#limits'>Known limitations</a></div><div class='prose'>
+<p>This site publishes output from a college football model built from
+play-by-play data. Everything below describes how a number gets made, so you
+can judge how much weight it deserves.</p>
+
+<h3 id='values'>Every value on this site</h3></div>
+<table><thead><tr><th>Term</th><th>What it means</th></tr></thead>
+<tbody><tr><td class='team'>Pts</td><td>Projected points for that team. The spread and total carry the signal; these two numbers just split them.</td></tr><tr><td class='team'>Total</td><td>Projected combined points.</td></tr><tr><td class='team'>By</td><td>Projected margin of victory for the favourite.</td></tr><tr><td class='team'>EPA</td><td>Expected points added. How much a play changed the offense's expected next-score value. A 12-yard gain on 3rd-and-10 is worth far more than on 1st-and-25.</td></tr><tr><td class='team'>Off EPA/play</td><td>Average EPA the offense generated per play, garbage time excluded. Higher is better.</td></tr><tr><td class='team'>Def EPA/play</td><td>Average EPA the defense allowed per play. <em>Lower is better</em> — negative means opposing offenses lost value.</td></tr><tr><td class='team'>Net</td><td>Off EPA/play minus Def EPA/play.</td></tr><tr><td class='team'>Prior SRS</td><td>Opponent-adjusted rating in points, solved from last season's game margins across the whole schedule network so FCS and FBS sit on one scale.</td></tr><tr><td class='team'>Off / Def scoring</td><td>Opponent-adjusted points a team adds or allows relative to average.</td></tr><tr><td class='team'>Pace</td><td>Offensive plays per game.</td></tr><tr><td class='team'>Line</td><td>The market's number for that pick.</td></tr><tr><td class='team'>Model</td><td>This model's equivalent number for the <em>same</em> pick — so both sides of a game mirror each other.</td></tr><tr><td class='team'>Edge</td><td>Line minus Model, in points. Positive means the market is offering more than the model thinks the pick needs.</td></tr><tr><td class='team'>Win%</td><td>Model probability that pick wins, from its projection and its own historical error spread (about 17.8 points).</td></tr><tr><td class='team'>Mkt%</td><td>Probability implied by the price, including the vig.</td></tr><tr><td class='team'>EV%</td><td>Expected profit per unit staked, <em>if</em> the model's probability were correct. It usually is not.</td></tr><tr><td class='team'>Proj EPA</td><td>A player's projected season EPA contribution: his shrunk per-play rate times projected involvement.</td></tr></tbody></table>
+<div class='prose'>
+
+<h3 id='ep'>The expected points model</h3>
+<p>Every play starts from a game state: down, distance, field position, time
+left in the half, score, timeouts. A gradient-boosted classifier predicts
+which of seven outcomes happens <em>next</em> — offense touchdown, field goal
+or safety; defense touchdown, field goal or safety; or no more scoring this
+half. Expected points is the probability-weighted value of that distribution,
+and EPA is how much a play moved it.</p>
+<p>The model trains on five seasons, excluding garbage time so blowout
+snaps don't teach it what normal football looks like. Overtime is excluded
+entirely — no clock and a fixed starting point make it a different game.
+Held-out log loss is 1.296 against a 1.946 uniform baseline, and predicted
+touchdown probability tracks observed rates to within 1.3 percentage
+points.</p>
+
+<h3 id='attr'>Attributing plays to players</h3>
+<p>One EPA value per play gets apportioned to the players involved.
+<strong>Direct</strong> attribution covers cases with a clear owner: the
+quarterback on a dropback, the ball-carrier on a run, the kicker, and
+defenders credited with sacks, interceptions, pass breakups, forced fumbles
+and pressures. <strong>Shared</strong> attribution covers targeted receivers,
+who carry the play's EPA at a lower confidence weight since passer and
+receiver both shape the outcome.</p>
+<p>Because the data source records no quarterback on incomplete passes, the
+passer is recovered by parsing the play description and matching the name
+against that team's roster — about 108,000 plays, with ambiguous names
+skipped rather than guessed.</p>
+
+<h3 id='shrink'>Shrinkage</h3>
+<p>A cornerback with three interceptions in limited snaps is not better than
+a season-long starter, but raw rates say otherwise. Every player rate is
+pulled toward its position group's average by an amount estimated from the
+data itself — how much of the observed spread is real talent versus sampling
+noise. Quarterbacks need roughly 140 plays before their own numbers outweigh
+the prior; havoc-driven defensive roles need far fewer, because the spread
+between roles is genuinely large.</p>
+
+<h3 id='proj'>Team and game projections</h3>
+<p>Team ratings come from SRS solved on game margins, which is
+opponent-adjusted by construction: strength propagates through the schedule
+network, so a dominant FCS team is measured against the same scale as an FBS
+one. A margin model combines the rating gap, home field, and a roster-change
+signal built bottom-up from returning and transferring players. A separate
+model projects the total from opponent-adjusted scoring ratings and pace.</p>
+<p>Validated leave-one-season-out on roughly 3,200 FBS games: 13.9 points of
+margin error and 66% of winners correct. That is a reasonable preseason model
+and clearly worse than a sharp betting line.</p>
+
+<h3 id='market'>Market comparison and EV</h3>
+<p>The Market tab compares the model against posted odds. Treat EV% as a
+disagreement detector, not a betting signal — the model's error is larger
+than the market's, so a big number more often means the model is wrong about
+that game than that the book is.</p>
+
+<h3 id='schema'>Data model</h3>
+<ul>
+<li><code>plays</code> — one row per snap with game state, EPA, and a
+garbage-time flag.</li>
+<li><code>play_player_stats</code> — which players did what on each play.</li>
+<li><code>player_play_epa</code> — each player's share of a play's EPA, with
+an attribution type and confidence weight.</li>
+<li><code>player_season_shrunk</code> — season rates after shrinkage, with
+percentiles within position.</li>
+<li><code>team_returning_production</code> — how much of last season's
+production returns, and what arrived by transfer.</li>
+<li><code>transfer_translation</code> — how production is expected to survive
+a change of competition level.</li>
+<li><code>game_projections</code> / <code>projection_log</code> — current
+projections, and an append-only record of the first projection made for each
+game.</li>
+</ul>
+
+<h3 id='limits'>Known limitations</h3>
+<ul>
+<li>Offensive linemen have no direct attribution; receivers reach team
+projections only through their quarterback.</li>
+<li>Defensive player value is splash-play EPA — it measures playmaking, not
+per-snap contribution.</li>
+<li>Ratings use the prior season only. Nothing here learns from the current
+season's results yet.</li>
+<li>No injury, weather, travel, or coaching-change information.</li>
+<li>Totals in extreme mismatches are the least reliable output.</li>
+</ul>
+</div></div></main>
+<script>
+(function(){
+  var val=function(el,t){
+    var s=(el.getAttribute('data-v')!==null)?el.getAttribute('data-v'):el.textContent;
+    s=s.trim();
+    if(t==='num'){var n=parseFloat(s.replace(/[^0-9.+-]/g,''));return isNaN(n)?-Infinity:n;}
+    return s.toLowerCase();
+  };
+  document.querySelectorAll('table').forEach(function(tb){
+    var heads=tb.querySelectorAll('thead th');
+    heads.forEach(function(th,i){
+      if(!th.hasAttribute('data-t'))return;
+      th.setAttribute('tabindex','0');
+      var go=function(){
+        var t=th.getAttribute('data-t');
+        var dir=th.getAttribute('data-dir')==='asc'?'desc':'asc';
+        heads.forEach(function(h){h.removeAttribute('data-dir');});
+        th.setAttribute('data-dir',dir);
+        var body=tb.querySelector('tbody');
+        var all=Array.prototype.slice.call(body.querySelectorAll('tr'));
+        var rows=all.filter(function(r){return !r.classList.contains('det');});
+        var dets={};
+        all.forEach(function(r){
+          if(r.classList.contains('det'))dets[r.getAttribute('data-g')]=r;
+        });
+        rows.sort(function(a,b){
+          var x=val(a.cells[i],t),y=val(b.cells[i],t);
+          if(x<y)return dir==='asc'?-1:1;
+          if(x>y)return dir==='asc'?1:-1;
+          return 0;
+        });
+        rows.forEach(function(r){
+          body.appendChild(r);
+          var g=r.getAttribute('data-g');
+          if(g!==null&&dets[g])body.appendChild(dets[g]);
+        });
+      };
+      th.addEventListener('click',go);
+      th.addEventListener('keydown',function(ev){
+        if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go();}
+      });
+    });
+  });
+  var tbl=document.querySelector('table'),
+      tb=tbl?tbl.querySelector('tbody'):null;
+  if(tb){
+    tb.addEventListener('click',function(ev){
+      var tr=ev.target.closest('tr.row');
+      if(!tr)return;
+      var g=tr.getAttribute('data-g');
+      var d=tb.querySelector("tr.det[data-g='"+g+"']");
+      if(!d)return;
+      var open=d.classList.toggle('show');
+      tr.classList.toggle('open',open);
+    });
+  }
+  var bd=document.querySelector('.board');
+  if(bd){
+    bd.addEventListener('click',function(ev){
+      var c=ev.target.closest('.game');
+      if(c&&c.querySelector('.det2'))c.classList.toggle('open');
+    });
+  }
+  var q=document.getElementById('q'),qn=document.getElementById('qn');
+  if(q){
+    var filter=function(){
+      var v=q.value.trim().toLowerCase(),shown=0,total=0;
+      if(tb){
+        tb.querySelectorAll('tr.row, tr:not(.det):not(.row)').forEach(function(tr){
+          total++;
+          var hit=!v||tr.textContent.toLowerCase().indexOf(v)>-1;
+          tr.style.display=hit?'':'none';
+          if(hit)shown++;
+          var g=tr.getAttribute('data-g');
+          if(g!==null){
+            var d=tb.querySelector("tr.det[data-g='"+g+"']");
+            if(d&&!hit){d.classList.remove('show');tr.classList.remove('open');}
+          }
+        });
+      }
+      if(bd){
+        bd.querySelectorAll('.game').forEach(function(c){
+          var hit=!v||c.textContent.toLowerCase().indexOf(v)>-1;
+          c.style.display=hit?'':'none';
+          if(!hit)c.classList.remove('open');
+        });
+      }
+      if(qn)qn.textContent=v?shown+' / '+total:'';
+    };
+    q.addEventListener('input',filter);
+    q.addEventListener('keydown',function(ev){
+      if(ev.key==='Escape'){q.value='';filter();}
+    });
+  }
+  var board=document.querySelector('.board'),sel=document.getElementById('bsort'),
+      btn=document.getElementById('bdir');
+  if(board&&sel){
+    var asc=true;
+    var apply=function(){
+      var k=sel.value,t=sel.options[sel.selectedIndex].getAttribute('data-t');
+      var cards=Array.prototype.slice.call(board.querySelectorAll('.game'));
+      cards.sort(function(a,b){
+        var x=a.getAttribute('data-'+k),y=b.getAttribute('data-'+k);
+        if(t==='num'){x=parseFloat(x);y=parseFloat(y);}
+        else{x=(x||'').toLowerCase();y=(y||'').toLowerCase();}
+        if(x<y)return asc?-1:1;
+        if(x>y)return asc?1:-1;
+        return 0;
+      });
+      cards.forEach(function(c){board.appendChild(c);});
+      btn.textContent=asc?'↑':'↓';
+    };
+    sel.addEventListener('change',apply);
+    btn.addEventListener('click',function(){asc=!asc;apply();});
+  }
+})();
+</script>
+<footer><div class="wrap">Model output, not advice. Held-out margin error is
+about 14 points a game — treat every number as a wide estimate.</div></footer>
+</body></html>
