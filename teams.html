@@ -134,10 +134,57 @@ tr.det > td{background:var(--panel);padding:14px 16px}
   color:var(--muted);margin-top:2px}
 footer{border-top:1px solid var(--line);color:var(--muted);font-size:12px;
   padding:16px 0 40px}
+
+/* ---------------- mobile ---------------- */
+/* Any table not converted to cards scrolls inside its own box instead of
+   dragging the whole page sideways. */
+.xscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media(max-width:900px){
+  /* raised from 760px so landscape phones and small tablets get the
+     phone layout too */
+  .tbl{display:none}
+  .board{display:block}
+  .sorter{display:flex}
+  .mx{grid-template-columns:1fr}
+  .wrap{padding:0 12px}
+  /* the tab strip was overflowing on narrow screens, which is what made
+     the whole page pan left-right */
+  header{position:static}
+  .brand{flex-wrap:wrap;gap:2px 10px;padding:12px 0 0}
+  .brand h1{font-size:18px}
+  nav{overflow-x:auto;scrollbar-width:none;padding-top:8px}
+  nav::-webkit-scrollbar{display:none}
+  nav a{flex:0 0 auto;padding:9px 12px}
+  main{padding:16px 0 48px}
+  .note{margin-bottom:14px}
+  .tools{margin-bottom:10px}
+  .big{gap:10px}
+  .big div{flex:1 1 calc(50% - 10px);min-width:0;padding:10px 12px}
+  .big .n{font-size:20px}
+  /* stacked rows: each table row becomes a labelled card */
+  .xscroll.stacked{overflow-x:visible}
+  table.stack thead{display:none}
+  table.stack,table.stack tbody,table.stack tr,table.stack td{
+    display:block;width:auto}
+  table.stack tr{background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;margin:0 0 10px;overflow:hidden}
+  table.stack tbody tr:hover{background:var(--panel)}
+  table.stack td{border:0;padding:6px 12px;display:flex;gap:14px;
+    justify-content:space-between;align-items:baseline;
+    text-align:right;white-space:normal}
+  table.stack td::before{content:attr(data-l);color:var(--muted);
+    font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    flex:0 0 auto;padding-top:2px;text-align:left}
+  table.stack td.lead{background:var(--panel-2);padding:8px 12px;
+    margin-bottom:4px;justify-content:flex-start;text-align:left;
+    font-size:11px;letter-spacing:.08em;color:var(--muted)}
+  table.stack td.lead::before{content:none}
+  .msort{margin:0 0 12px}
+}
 </style></head>
 <body><header><div class="wrap">
 <div class="brand"><h1>Projections</h1>
-<span class="stamp">NCAA FB &middot; built Sep 05, 2026 06:55</span></div>
+<span class="stamp">NCAA FB &middot; built Sep 05, 2026 11:31</span></div>
 <nav><a href="index.html" class="">Games</a><a href="ev.html" class="">Market</a><a href="teams.html" class="on">Teams</a><a href="tracking.html" class="">Tracking</a><a href="about.html" class="">About</a></nav></div></header>
 <main><div class="wrap"><p class='note'>No team data.</p></div></main>
 <script>
@@ -255,6 +302,60 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:12px;
     sel.addEventListener('change',apply);
     btn.addEventListener('click',function(){asc=!asc;apply();});
   }
+})();
+</script>
+<script>
+(function(){
+  var tables = Array.prototype.slice.call(document.querySelectorAll('table'));
+  tables.forEach(function(t){
+    /* skip the Games table (it already has a card view) and the little
+       stat tables inside an expanded matchup panel */
+    if(t.closest('.tbl') || t.closest('.mx')) return;
+    var hs = Array.prototype.slice.call(t.querySelectorAll('thead th'));
+    if(!hs.length) return;
+
+    var box = t.parentNode;
+    if(!box.classList || !box.classList.contains('xscroll')){
+      box = document.createElement('div');
+      box.className = 'xscroll';
+      t.parentNode.insertBefore(box, t);
+      box.appendChild(t);
+    }
+    if(hs.length < 4) return;            /* narrow tables read fine as-is */
+
+    t.classList.add('stack');
+    box.classList.add('stacked');
+    var labels = hs.map(function(h){ return h.textContent.trim(); });
+    t.querySelectorAll('tbody tr').forEach(function(r){
+      Array.prototype.forEach.call(r.cells, function(c,i){
+        if(labels[i]) c.setAttribute('data-l', labels[i]);
+        if(i === 0) c.classList.add('lead');
+      });
+    });
+
+    /* headers are hidden when stacked, so give the phone its own sort bar
+       that just clicks the matching header */
+    var opts = [];
+    hs.forEach(function(h,i){
+      if(h.hasAttribute('data-t'))
+        opts.push('<option value="'+i+'">'+labels[i]+'</option>');
+    });
+    if(!opts.length) return;
+    var bar = document.createElement('div');
+    bar.className = 'sorter msort';
+    bar.innerHTML = '<label>Sort</label><select>' + opts.join('') +
+                    '</select><button type="button" ' +
+                    'aria-label="Reverse order">↕</button>';
+    box.parentNode.insertBefore(bar, box);
+    var sel = bar.querySelector('select'), btn = bar.querySelector('button');
+    var go = function(){
+      var th = hs[parseInt(sel.value,10)];
+      th.click();
+      btn.textContent = th.getAttribute('data-dir') === 'asc' ? '↑' : '↓';
+    };
+    sel.addEventListener('change', go);
+    btn.addEventListener('click', go);
+  });
 })();
 </script>
 <footer><div class="wrap">Model output, not advice. Held-out margin error is
