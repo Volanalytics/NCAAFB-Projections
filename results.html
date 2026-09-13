@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Results</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --field:#08161B; --panel:#102A31; --panel-2:#173A44;
+  --line:#1F5058;
+  --chalk:#EAF0F6; --muted:#8199B0; --accent:#3FD0C9;
+  --gain:#8CC63F; --loss:#E8615C;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--field);color:var(--chalk);
+  font-family:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:14px;line-height:1.55;-webkit-text-size-adjust:100%;
+  font-variant-numeric:tabular-nums}
+a{color:var(--accent);text-decoration:none}
+header{border-bottom:1px solid var(--line);background:var(--panel);
+  position:sticky;top:0;z-index:5}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+.brand{display:flex;align-items:baseline;gap:12px;padding:14px 0 0}
+.brand h1{font-weight:700;font-size:22px;letter-spacing:.14em;
+  text-transform:uppercase;margin:0}
+.brand .stamp{font-size:11px;color:var(--muted);letter-spacing:.08em}
+nav{display:flex;gap:4px;padding:10px 0 0}
+nav a{padding:8px 14px;border-radius:6px 6px 0 0;font-size:13px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  font-weight:500}
+nav a.on{background:var(--field);color:var(--chalk);
+  box-shadow:inset 0 2px 0 var(--accent)}
+main{padding:22px 0 60px}
+.note{color:var(--muted);font-size:13px;margin:0 0 18px;max-width:70ch}
+h2{font-weight:700;font-size:16px;letter-spacing:.12em;
+  text-transform:uppercase;margin:26px 0 10px;color:var(--chalk)}
+h2:first-of-type{margin-top:0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-weight:500;font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);
+  white-space:nowrap;background:var(--field)}
+td{padding:9px 10px;border-bottom:1px solid rgba(36,64,92,.5)}
+tbody tr:hover{background:var(--panel)}
+.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.team{font-weight:500}
+.fav{color:var(--accent)}
+.date{color:var(--muted);font-size:13px;white-space:nowrap}
+.pos{color:var(--gain)} .neg{color:var(--loss)}
+.pill{display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;
+  letter-spacing:.08em;text-transform:uppercase;background:var(--panel-2);
+  color:var(--muted)}
+/* scoreboard: the signature element */
+.board{display:none}
+.game{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  margin:0 0 10px;overflow:hidden}
+.game .kick{padding:7px 12px;background:var(--panel-2);font-size:11px;
+  letter-spacing:.08em;color:var(--muted);
+  display:flex;justify-content:space-between;align-items:center}
+.game .side{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 12px}
+.game .side + .side{border-top:1px solid rgba(36,64,92,.6)}
+.game .side .nm{font-weight:500;font-size:14px}
+.game .side .sc{font-weight:700;font-size:26px;line-height:1;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.game .side.win .sc{color:var(--accent)}
+.game .foot{padding:7px 12px;border-top:1px solid rgba(36,64,92,.6);
+  font-size:11px;color:var(--muted);display:flex;gap:14px;
+  letter-spacing:.06em}
+@media(max-width:760px){
+  .tbl{display:none}
+  .board{display:block}
+  .wrap{padding:0 12px}
+}
+th[data-t]{cursor:pointer;user-select:none;position:relative}
+th[data-t]:hover{color:var(--chalk)}
+th[data-t]::after{content:"";opacity:.35;margin-left:6px;font-size:10px}
+th[data-t][data-dir="asc"]::after{content:"↑";opacity:1;color:var(--accent)}
+th[data-t][data-dir="desc"]::after{content:"↓";opacity:1;color:var(--accent)}
+th[data-t]:not([data-dir])::after{content:"↕"}
+.tools{display:flex;gap:8px;align-items:center;margin:0 0 14px}
+.tools input{flex:1;background:var(--panel);color:var(--chalk);
+  border:1px solid var(--line);border-radius:6px;padding:9px 11px;
+  font-family:inherit;font-size:13px}
+.tools input::placeholder{color:var(--muted)}
+.tools .count{font-size:11px;color:var(--muted);letter-spacing:.08em;
+  white-space:nowrap}
+tr.row{cursor:pointer}
+tr.row td:first-child{position:relative;padding-left:22px}
+tr.row td:first-child::before{content:"A";position:absolute;left:8px;
+  color:var(--muted);transition:transform .12s}
+tr.row.open td:first-child::before{transform:rotate(90deg);color:var(--accent)}
+tr.det{display:none}
+tr.det.show{display:table-row}
+tr.det > td{background:var(--panel);padding:14px 16px}
+.mx{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.mx h4{margin:0 0 8px;font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:500}
+.mx table{font-size:12px}
+.mx td{padding:3px 6px;border:0}
+.mx .k{color:var(--muted)}
+.mx .v{text-align:right;font-variant-numeric:tabular-nums}
+.game .det2{display:none;padding:12px;border-top:1px solid var(--line);
+  background:var(--panel-2)}
+.game.open .det2{display:block}
+.game .kick{cursor:pointer}
+@media(max-width:760px){.mx{grid-template-columns:1fr}}
+.sorter{display:none;margin:0 0 12px;gap:8px;align-items:center}
+.sorter label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted)}
+.sorter select{background:var(--panel);color:var(--chalk);
+  border:1px solid var(--line);border-radius:6px;padding:7px 9px;
+  font-family:inherit;font-size:13px;flex:1}
+.sorter button{background:var(--panel);color:var(--chalk);
+  border:1px solid var(--line);border-radius:6px;padding:7px 11px;
+  font-family:inherit;font-size:13px;cursor:pointer}
+@media(max-width:760px){.sorter{display:flex}}
+.prose{max-width:78ch}
+.prose h3{font-size:14px;letter-spacing:.1em;text-transform:uppercase;
+  margin:28px 0 8px;color:var(--accent);font-weight:500}
+.prose p{margin:0 0 12px;color:#C4D2DF}
+.prose code{background:var(--panel);padding:1px 5px;border-radius:4px;
+  font-size:12px;color:var(--chalk)}
+.prose ul{margin:0 0 14px;padding-left:18px;color:#C4D2DF}
+.prose li{margin:0 0 6px}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 20px}
+.toc a{background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  padding:5px 10px;font-size:12px;color:var(--chalk)}
+.toc a:hover{border-color:var(--accent)}
+.hit{color:var(--gain)} .miss{color:var(--loss)}
+.big{display:flex;gap:22px;flex-wrap:wrap;margin:0 0 20px}
+.big div{background:var(--panel);border:1px solid var(--line);
+  border-radius:8px;padding:12px 16px;min-width:120px}
+.big .n{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.big .l{font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-top:2px}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:12px;
+  padding:16px 0 40px}
+
+/* ---------------- mobile ---------------- */
+/* Any table not converted to cards scrolls inside its own box instead of
+   dragging the whole page sideways. */
+.xscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media(max-width:900px){
+  /* raised from 760px so landscape phones and small tablets get the
+     phone layout too */
+  .tbl{display:none}
+  .board{display:block}
+  .sorter{display:flex}
+  .mx{grid-template-columns:1fr}
+  .wrap{padding:0 12px}
+  /* the tab strip was overflowing on narrow screens, which is what made
+     the whole page pan left-right */
+  header{position:static}
+  .brand{flex-wrap:wrap;gap:2px 10px;padding:12px 0 0}
+  .brand h1{font-size:18px}
+  nav{overflow-x:auto;scrollbar-width:none;padding-top:8px}
+  nav::-webkit-scrollbar{display:none}
+  nav a{flex:0 0 auto;padding:9px 12px}
+  main{padding:16px 0 48px}
+  .note{margin-bottom:14px}
+  .tools{margin-bottom:10px}
+  .big{gap:10px}
+  .big div{flex:1 1 calc(50% - 10px);min-width:0;padding:10px 12px}
+  .big .n{font-size:20px}
+  /* stacked rows: each table row becomes a labelled card */
+  .xscroll.stacked{overflow-x:visible}
+  table.stack thead{display:none}
+  table.stack,table.stack tbody,table.stack tr,table.stack td{
+    display:block;width:auto}
+  table.stack tr{background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;margin:0 0 10px;overflow:hidden}
+  table.stack tbody tr:hover{background:var(--panel)}
+  table.stack td{border:0;padding:6px 12px;display:flex;gap:14px;
+    justify-content:space-between;align-items:baseline;
+    text-align:right;white-space:normal}
+  table.stack td::before{content:attr(data-l);color:var(--muted);
+    font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    flex:0 0 auto;padding-top:2px;text-align:left}
+  table.stack td.lead{background:var(--panel-2);padding:8px 12px;
+    margin-bottom:4px;justify-content:flex-start;text-align:left;
+    font-size:11px;letter-spacing:.08em;color:var(--muted)}
+  table.stack td.lead::before{content:none}
+  .msort{margin:0 0 12px}
+}
+
+.grp{color:var(--accent);text-align:center;border-left:1px solid var(--line)}
+table.wide{font-size:13px;min-width:660px}
+table.wide td{padding:7px 9px}
+dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:6px 18px;
+   align-items:baseline;max-width:80ch}
+dt{color:var(--accent);font-size:11px;letter-spacing:.1em;
+   text-transform:uppercase;white-space:nowrap}
+dd{margin:0;font-size:13px;color:#C4D2DF}
+@media(max-width:900px){
+  dl{grid-template-columns:1fr;gap:2px 0}
+  dd{margin:0 0 10px;color:var(--muted)}
+  table.wide{min-width:0}
+}
+</style></head>
+<body><header><div class="wrap">
+<div class="brand"><h1>Projections</h1>
+<span class="stamp">NCAA FB &middot; graded 2026-09-13 23:57 UTC</span></div>
+<nav><a href="index.html" class="">Games</a><a href="ev.html" class="">Market</a><a href="teams.html" class="">Teams</a><a href="tracking.html" class="">Tracking</a><a href="results.html" class="on">Results</a><a href="about.html" class="">About</a></nav></div></header>
+<main><div class="wrap">
+
+<p class="note">Every row pairs a projection with the market price that stood
+beside it before kickoff, both frozen at the same moment, so nothing here is
+hindsight. Bets are priced at the <strong>first</strong> capture and
+compared with the last capture before kickoff. 2026-08-29 to 2026-09-19
+<br>98 game(s) from weeks that finished before tracking began are included, with historical closing lines from CFBD rather than the live feed. Those books are marked <strong>(hist)</strong> and sit on their own rows: a closing number is a harder benchmark than the one that was actually available to bet, and no juice is published with them, so they grade at -110.</p>
+<div class='big'><div><div class='n'>176</div><div class='l'>games graded</div></div><div><div class='n'>87%</div><div class='l'>winner correct</div></div><div><div class='n'>13.4</div><div class='l'>margin MAE</div></div><div><div class='n'>-3.3</div><div class='l'>margin bias</div></div><div><div class='n'>35-42-1</div><div class='l'>against the spread</div></div><div><div class='n neg'>-14.3%</div><div class='l'>spread ROI</div></div><div><div class='n '>+0.00</div><div class='l'>spread CLV, pts</div></div><div><div class='n'>57</div><div class='l'>awaiting results</div></div></div>
+
+<h2>Accuracy by variant</h2>
+<div class="xscroll stacked"><table class="wide stack">
+<thead><tr><th data-t='txt'>variant</th>
+<th class="num" data-t='num'>n</th>
+<th class="num" data-t='num'>mgn MAE</th>
+<th class="num" data-t='num'>mgn bias</th>
+<th class="num" data-t='num'>tot MAE</th>
+<th class="num" data-t='num'>tot bias</th>
+<th class="num" data-t='num'>SU%</th></tr></thead>
+<tbody><tr><td class='lead' data-l='variant'>current</td><td class='num' data-l='n'>78</td><td class='num' data-l='mgn MAE'>13.44</td><td class='num neg' data-l='mgn bias'>-3.30</td><td class='num' data-l='tot MAE'>11.05</td><td class='num neg' data-l='tot bias'>-0.20</td><td class='num' data-l='SU%'>87%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='num' data-l='n'>176</td><td class='num' data-l='mgn MAE'>14.89</td><td class='num neg' data-l='mgn bias'>-5.35</td><td class='num' data-l='tot MAE'>11.81</td><td class='num neg' data-l='tot bias'>-0.37</td><td class='num' data-l='SU%'>89%</td></tr></tbody></table></div>
+
+<h2>Betting by variant and book</h2>
+<p class="note">Spreads and totals are graded on BetOnline, Kalshi; any other book
+contributes moneylines only. Kalshi's football spreads and totals sit a median
+half point from BetOnline's on the same games, so they are treated as real
+lines rather than as per-threshold contracts.</p>
+<div class="xscroll stacked"><table class="wide stack">
+<thead><tr><th rowspan="2" data-t='txt'>variant</th>
+<th rowspan="2" data-t='txt'>book</th>
+<th class="grp" colspan="3">spread</th>
+<th class="grp" colspan="3">total</th>
+<th class="grp" colspan="3">moneyline</th></tr>
+<tr><th class="num">W-L-P</th><th class="num" data-t='num'>ROI</th>
+<th class="num" data-t='num'>CLV</th>
+<th class="num">W-L-P</th><th class="num" data-t='num'>ROI</th>
+<th class="num" data-t='num'>CLV</th>
+<th class="num" data-t='num'>bets</th><th class="num" data-t='num'>ROI</th>
+<th class="num" data-t='num'>CLV</th></tr></thead>
+<tbody><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='book'>BetOnline</td><td class='num' data-l='spread W-L-P'>35-42-1</td><td class='num neg' data-l='spread ROI'>-14.3%</td><td class='num' data-l='spread CLV'>+0.00</td><td class='num' data-l='total W-L-P'>37-40-1</td><td class='num neg' data-l='total ROI'>-9.0%</td><td class='num' data-l='total CLV'>+0.00</td><td class='num' data-l='ML bets'>31</td><td class='num neg' data-l='ML ROI'>-29.2%</td><td class='num' data-l='ML CLV'>+0.000</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='book'>Kalshi</td><td class='num' data-l='spread W-L-P'>8-12-0</td><td class='num neg' data-l='spread ROI'>-22.6%</td><td class='num' data-l='spread CLV'>+0.00</td><td class='num' data-l='total W-L-P'>22-26-0</td><td class='num neg' data-l='total ROI'>-8.8%</td><td class='num' data-l='total CLV'>+0.00</td><td class='num' data-l='ML bets'>19</td><td class='num neg' data-l='ML ROI'>-19.6%</td><td class='num' data-l='ML CLV'>+0.000</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='book'>BetOnline</td><td class='num' data-l='spread W-L-P'>34-43-1</td><td class='num neg' data-l='spread ROI'>-16.7%</td><td class='num' data-l='spread CLV'>+0.00</td><td class='num' data-l='total W-L-P'>37-40-1</td><td class='num neg' data-l='total ROI'>-9.0%</td><td class='num' data-l='total CLV'>+0.00</td><td class='num' data-l='ML bets'>31</td><td class='num neg' data-l='ML ROI'>-29.2%</td><td class='num' data-l='ML CLV'>+0.000</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='book'>Kalshi</td><td class='num' data-l='spread W-L-P'>9-11-0</td><td class='num neg' data-l='spread ROI'>-12.0%</td><td class='num' data-l='spread CLV'>+0.00</td><td class='num' data-l='total W-L-P'>22-26-0</td><td class='num neg' data-l='total ROI'>-8.8%</td><td class='num' data-l='total CLV'>+0.00</td><td class='num' data-l='ML bets'>19</td><td class='num neg' data-l='ML ROI'>-19.6%</td><td class='num' data-l='ML CLV'>+0.000</td></tr></tbody></table></div>
+
+<h2>By edge size</h2>
+<p class="note">The model's held-out margin error is wider than a sharp line's,
+so a big disagreement is more often the model being wrong about that game than
+the book being wrong. This is where that gets tested: if the large-edge buckets
+are the worst ones, the disagreement is noise.</p>
+<div class="xscroll stacked"><table class="wide stack">
+<thead><tr><th data-t='txt'>variant</th><th data-t='txt'>market</th>
+<th data-t='txt'>edge</th><th class="num" data-t='num'>n</th>
+<th class="num">W-L-P</th><th class="num" data-t='num'>units</th>
+<th class="num" data-t='num'>ROI</th><th class="num" data-t='num'>CLV</th>
+<th class="num" data-t='num'>beat</th></tr></thead>
+<tbody><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='market'>spread</td><td class='' data-l='edge'>< 1</td><td class='num' data-l='n'>11</td><td class='num' data-l='W-L-P'>6-5-0</td><td class='num pos' data-l='units'>+0.24</td><td class='num pos' data-l='ROI'>+2.2%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='market'>spread</td><td class='' data-l='edge'>1 - 3</td><td class='num' data-l='n'>11</td><td class='num' data-l='W-L-P'>4-7-0</td><td class='num neg' data-l='units'>-3.44</td><td class='num neg' data-l='ROI'>-31.3%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='market'>spread</td><td class='' data-l='edge'>3 - 6</td><td class='num' data-l='n'>24</td><td class='num' data-l='W-L-P'>11-13-0</td><td class='num neg' data-l='units'>-3.19</td><td class='num neg' data-l='ROI'>-13.3%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='market'>spread</td><td class='' data-l='edge'>6 - 10</td><td class='num' data-l='n'>16</td><td class='num' data-l='W-L-P'>9-7-0</td><td class='num pos' data-l='units'>+0.97</td><td class='num pos' data-l='ROI'>+6.1%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='market'>spread</td><td class='' data-l='edge'>10+</td><td class='num' data-l='n'>16</td><td class='num' data-l='W-L-P'>5-10-1</td><td class='num neg' data-l='units'>-5.59</td><td class='num neg' data-l='ROI'>-37.3%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='market'>total</td><td class='' data-l='edge'>< 1</td><td class='num' data-l='n'>17</td><td class='num' data-l='W-L-P'>7-10-0</td><td class='num neg' data-l='units'>-3.81</td><td class='num neg' data-l='ROI'>-22.4%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='market'>total</td><td class='' data-l='edge'>1 - 3</td><td class='num' data-l='n'>24</td><td class='num' data-l='W-L-P'>11-12-1</td><td class='num neg' data-l='units'>-2.30</td><td class='num neg' data-l='ROI'>-10.0%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='market'>total</td><td class='' data-l='edge'>3 - 6</td><td class='num' data-l='n'>26</td><td class='num' data-l='W-L-P'>13-13-0</td><td class='num neg' data-l='units'>-1.12</td><td class='num neg' data-l='ROI'>-4.3%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='market'>total</td><td class='' data-l='edge'>6 - 10</td><td class='num' data-l='n'>10</td><td class='num' data-l='W-L-P'>5-5-0</td><td class='num neg' data-l='units'>-0.52</td><td class='num neg' data-l='ROI'>-5.2%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='market'>total</td><td class='' data-l='edge'>10+</td><td class='num' data-l='n'>1</td><td class='num' data-l='W-L-P'>1-0-0</td><td class='num pos' data-l='units'>+0.87</td><td class='num pos' data-l='ROI'>+87.0%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='market'>spread</td><td class='' data-l='edge'>< 1</td><td class='num' data-l='n'>12</td><td class='num' data-l='W-L-P'>5-7-0</td><td class='num neg' data-l='units'>-2.63</td><td class='num neg' data-l='ROI'>-21.9%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='market'>spread</td><td class='' data-l='edge'>1 - 3</td><td class='num' data-l='n'>10</td><td class='num' data-l='W-L-P'>5-5-0</td><td class='num neg' data-l='units'>-0.45</td><td class='num neg' data-l='ROI'>-4.5%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='market'>spread</td><td class='' data-l='edge'>3 - 6</td><td class='num' data-l='n'>24</td><td class='num' data-l='W-L-P'>10-14-0</td><td class='num neg' data-l='units'>-5.18</td><td class='num neg' data-l='ROI'>-21.6%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='market'>spread</td><td class='' data-l='edge'>6 - 10</td><td class='num' data-l='n'>16</td><td class='num' data-l='W-L-P'>9-7-0</td><td class='num pos' data-l='units'>+0.97</td><td class='num pos' data-l='ROI'>+6.1%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='market'>spread</td><td class='' data-l='edge'>10+</td><td class='num' data-l='n'>16</td><td class='num' data-l='W-L-P'>5-10-1</td><td class='num neg' data-l='units'>-5.59</td><td class='num neg' data-l='ROI'>-37.3%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='market'>total</td><td class='' data-l='edge'>< 1</td><td class='num' data-l='n'>16</td><td class='num' data-l='W-L-P'>7-9-0</td><td class='num neg' data-l='units'>-2.81</td><td class='num neg' data-l='ROI'>-17.6%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='market'>total</td><td class='' data-l='edge'>1 - 3</td><td class='num' data-l='n'>24</td><td class='num' data-l='W-L-P'>11-12-1</td><td class='num neg' data-l='units'>-2.30</td><td class='num neg' data-l='ROI'>-10.0%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='market'>total</td><td class='' data-l='edge'>3 - 6</td><td class='num' data-l='n'>27</td><td class='num' data-l='W-L-P'>13-14-0</td><td class='num neg' data-l='units'>-2.12</td><td class='num neg' data-l='ROI'>-7.9%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='market'>total</td><td class='' data-l='edge'>6 - 10</td><td class='num' data-l='n'>10</td><td class='num' data-l='W-L-P'>5-5-0</td><td class='num neg' data-l='units'>-0.52</td><td class='num neg' data-l='ROI'>-5.2%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='market'>total</td><td class='' data-l='edge'>10+</td><td class='num' data-l='n'>1</td><td class='num' data-l='W-L-P'>1-0-0</td><td class='num pos' data-l='units'>+0.87</td><td class='num pos' data-l='ROI'>+87.0%</td><td class='num' data-l='CLV'>+0.00</td><td class='num' data-l='beat'>0%</td></tr></tbody></table></div>
+
+<h2>By matchup type</h2>
+<div class="xscroll stacked"><table class="wide stack">
+<thead><tr><th data-t='txt'>variant</th><th data-t='txt'>type</th><th class='num' data-t='num'>n</th><th class='num' data-t='num'>mgn MAE</th><th class='num' data-t='num'>mgn bias</th><th class='num' data-t='num'>SU%</th><th class='num'>ATS W-L-P</th><th class='num' data-t='num'>ATS ROI</th><th class='num'>O/U W-L-P</th><th class='num' data-t='num'>O/U ROI</th></tr></thead>
+<tbody><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='type'>FBS vs FBS</td><td class='num' data-l='n'>47</td><td class='num' data-l='mgn MAE'>13.84</td><td class='num neg' data-l='mgn bias'>-2.55</td><td class='num' data-l='SU%'>81%</td><td class='num' data-l='ATS W-L-P'>18-28-1</td><td class='num neg' data-l='ATS ROI'>-25.9%</td><td class='num' data-l='O/U W-L-P'>25-21-1</td><td class='num pos' data-l='O/U ROI'>+3.5%</td></tr><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='type'>cross-division</td><td class='num' data-l='n'>31</td><td class='num' data-l='mgn MAE'>12.84</td><td class='num neg' data-l='mgn bias'>-4.42</td><td class='num' data-l='SU%'>97%</td><td class='num' data-l='ATS W-L-P'>17-14-0</td><td class='num pos' data-l='ATS ROI'>+3.0%</td><td class='num' data-l='O/U W-L-P'>12-19-0</td><td class='num neg' data-l='O/U ROI'>-27.4%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='type'>FBS vs FBS</td><td class='num' data-l='n'>97</td><td class='num' data-l='mgn MAE'>14.76</td><td class='num neg' data-l='mgn bias'>-3.30</td><td class='num' data-l='SU%'>84%</td><td class='num' data-l='ATS W-L-P'>18-28-1</td><td class='num neg' data-l='ATS ROI'>-25.9%</td><td class='num' data-l='O/U W-L-P'>25-21-1</td><td class='num pos' data-l='O/U ROI'>+3.5%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='type'>cross-division</td><td class='num' data-l='n'>79</td><td class='num' data-l='mgn MAE'>15.04</td><td class='num neg' data-l='mgn bias'>-7.87</td><td class='num' data-l='SU%'>96%</td><td class='num' data-l='ATS W-L-P'>16-15-0</td><td class='num neg' data-l='ATS ROI'>-3.1%</td><td class='num' data-l='O/U W-L-P'>12-19-0</td><td class='num neg' data-l='O/U ROI'>-27.4%</td></tr></tbody></table></div>
+
+<h2>By week</h2>
+<div class="xscroll stacked"><table class="wide stack">
+<thead><tr><th data-t='txt'>variant</th><th data-t='txt'>week</th><th class='num' data-t='num'>n</th><th class='num' data-t='num'>mgn MAE</th><th class='num' data-t='num'>mgn bias</th><th class='num' data-t='num'>SU%</th><th class='num'>ATS W-L-P</th><th class='num' data-t='num'>ATS ROI</th><th class='num'>O/U W-L-P</th><th class='num' data-t='num'>O/U ROI</th></tr></thead>
+<tbody><tr><td class='lead' data-l='variant'>current</td><td class='' data-l='week'>week 2</td><td class='num' data-l='n'>78</td><td class='num' data-l='mgn MAE'>13.44</td><td class='num neg' data-l='mgn bias'>-3.30</td><td class='num' data-l='SU%'>87%</td><td class='num' data-l='ATS W-L-P'>35-42-1</td><td class='num neg' data-l='ATS ROI'>-14.3%</td><td class='num' data-l='O/U W-L-P'>37-40-1</td><td class='num neg' data-l='O/U ROI'>-9.0%</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='week'>week 1</td><td class='num' data-l='n'>98</td><td class='num' data-l='mgn MAE'>15.97</td><td class='num neg' data-l='mgn bias'>-6.82</td><td class='num' data-l='SU%'>91%</td><td class='num' data-l='ATS W-L-P'>—</td><td class='num' data-l='ATS ROI'>—</td><td class='num' data-l='O/U W-L-P'>—</td><td class='num' data-l='O/U ROI'>—</td></tr><tr><td class='lead' data-l='variant'>first posted</td><td class='' data-l='week'>week 2</td><td class='num' data-l='n'>78</td><td class='num' data-l='mgn MAE'>13.54</td><td class='num neg' data-l='mgn bias'>-3.50</td><td class='num' data-l='SU%'>87%</td><td class='num' data-l='ATS W-L-P'>34-43-1</td><td class='num neg' data-l='ATS ROI'>-16.7%</td><td class='num' data-l='O/U W-L-P'>37-40-1</td><td class='num neg' data-l='O/U ROI'>-9.0%</td></tr></tbody></table></div>
+
+<h2>Definitions</h2>
+<dl><dt>variant</dt><dd>Which projection was frozen. <em>current</em> is the number the site showed that week; <em>first posted</em> is the first projection ever made for that game, never overwritten. The gap between the two rows is what the weekly refresh is worth.</dd><dt>n</dt><dd>Games graded in that row.</dd><dt>mgn MAE</dt><dd>Mean absolute error of the projected margin against the final margin. Lower is a tighter point estimate.</dd><dt>bias</dt><dd>Mean signed error, projected minus actual. Positive means the model favoured the home team too much.</dd><dt>SU%</dt><dd>Share of games where the projected winner won.</dd><dt>W-L-P</dt><dd>Wins, losses and pushes from backing whichever side the projection implies against the posted number.</dd><dt>ROI</dt><dd>Profit divided by settled bets, at the price actually offered. Pushes leave the divisor rather than counting as losses.</dd><dt>CLV</dt><dd>Closing line value: for spreads and totals, points of line gained between the bet and the last capture before kickoff; for moneylines, the change in no-vig win probability. Positive means the market moved toward the side that was taken.</dd><dt>beat</dt><dd>Share of bets with positive CLV. Over a season this settles whether there is an edge here long before the win-loss record does.</dd><dt>no-vig</dt><dd>The book's two prices converted to probabilities and rescaled to sum to 1, removing the margin built into the quote.</dd><dt>edge</dt><dd>How far the projection sat from the posted number, in points, when the bet was priced.</dd><dt>cross-division</dt><dd>One FBS team against one FCS team. Held-out validation on FBS-only games never saw these, and they carried a large bias in 2026 Week 1, so they get their own row here permanently.</dd></dl>
+
+</div></main>
+<script>
+(function(){
+  var val=function(el,t){
+    var s=(el.getAttribute('data-v')!==null)?el.getAttribute('data-v'):el.textContent;
+    s=s.trim();
+    if(t==='num'){var n=parseFloat(s.replace(/[^0-9.+-]/g,''));return isNaN(n)?-Infinity:n;}
+    return s.toLowerCase();
+  };
+  document.querySelectorAll('table').forEach(function(tb){
+    var heads=tb.querySelectorAll('thead th');
+    heads.forEach(function(th,i){
+      if(!th.hasAttribute('data-t'))return;
+      th.setAttribute('tabindex','0');
+      var go=function(){
+        var t=th.getAttribute('data-t');
+        var dir=th.getAttribute('data-dir')==='asc'?'desc':'asc';
+        heads.forEach(function(h){h.removeAttribute('data-dir');});
+        th.setAttribute('data-dir',dir);
+        var body=tb.querySelector('tbody');
+        var all=Array.prototype.slice.call(body.querySelectorAll('tr'));
+        var rows=all.filter(function(r){return !r.classList.contains('det');});
+        var dets={};
+        all.forEach(function(r){
+          if(r.classList.contains('det'))dets[r.getAttribute('data-g')]=r;
+        });
+        rows.sort(function(a,b){
+          var x=val(a.cells[i],t),y=val(b.cells[i],t);
+          if(x<y)return dir==='asc'?-1:1;
+          if(x>y)return dir==='asc'?1:-1;
+          return 0;
+        });
+        rows.forEach(function(r){
+          body.appendChild(r);
+          var g=r.getAttribute('data-g');
+          if(g!==null&&dets[g])body.appendChild(dets[g]);
+        });
+      };
+      th.addEventListener('click',go);
+      th.addEventListener('keydown',function(ev){
+        if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go();}
+      });
+    });
+  });
+  var tbl=document.querySelector('table'),
+      tb=tbl?tbl.querySelector('tbody'):null;
+  if(tb){
+    tb.addEventListener('click',function(ev){
+      var tr=ev.target.closest('tr.row');
+      if(!tr)return;
+      var g=tr.getAttribute('data-g');
+      var d=tb.querySelector("tr.det[data-g='"+g+"']");
+      if(!d)return;
+      var open=d.classList.toggle('show');
+      tr.classList.toggle('open',open);
+    });
+  }
+  var bd=document.querySelector('.board');
+  if(bd){
+    bd.addEventListener('click',function(ev){
+      var c=ev.target.closest('.game');
+      if(c&&c.querySelector('.det2'))c.classList.toggle('open');
+    });
+  }
+  var q=document.getElementById('q'),qn=document.getElementById('qn');
+  if(q){
+    var filter=function(){
+      var v=q.value.trim().toLowerCase(),shown=0,total=0;
+      if(tb){
+        tb.querySelectorAll('tr.row, tr:not(.det):not(.row)').forEach(function(tr){
+          total++;
+          var hit=!v||tr.textContent.toLowerCase().indexOf(v)>-1;
+          tr.style.display=hit?'':'none';
+          if(hit)shown++;
+          var g=tr.getAttribute('data-g');
+          if(g!==null){
+            var d=tb.querySelector("tr.det[data-g='"+g+"']");
+            if(d&&!hit){d.classList.remove('show');tr.classList.remove('open');}
+          }
+        });
+      }
+      if(bd){
+        bd.querySelectorAll('.game').forEach(function(c){
+          var hit=!v||c.textContent.toLowerCase().indexOf(v)>-1;
+          c.style.display=hit?'':'none';
+          if(!hit)c.classList.remove('open');
+        });
+      }
+      if(qn)qn.textContent=v?shown+' / '+total:'';
+    };
+    q.addEventListener('input',filter);
+    q.addEventListener('keydown',function(ev){
+      if(ev.key==='Escape'){q.value='';filter();}
+    });
+  }
+  var board=document.querySelector('.board'),sel=document.getElementById('bsort'),
+      btn=document.getElementById('bdir');
+  if(board&&sel){
+    var asc=true;
+    var apply=function(){
+      var k=sel.value,t=sel.options[sel.selectedIndex].getAttribute('data-t');
+      var cards=Array.prototype.slice.call(board.querySelectorAll('.game'));
+      cards.sort(function(a,b){
+        var x=a.getAttribute('data-'+k),y=b.getAttribute('data-'+k);
+        if(t==='num'){x=parseFloat(x);y=parseFloat(y);}
+        else{x=(x||'').toLowerCase();y=(y||'').toLowerCase();}
+        if(x<y)return asc?-1:1;
+        if(x>y)return asc?1:-1;
+        return 0;
+      });
+      cards.forEach(function(c){board.appendChild(c);});
+      btn.textContent=asc?'↑':'↓';
+    };
+    sel.addEventListener('change',apply);
+    btn.addEventListener('click',function(){asc=!asc;apply();});
+  }
+})();
+</script>
+<footer><div class="wrap">Spread and total bets are recorded whenever the
+disagreement clears 0 point(s); moneyline bets need
+3 percentage points of edge over the no-vig price. Every
+bet is 1 unit at the offered price, with a missing price treated as -110.
+Model output, not advice.</div></footer>
+</body></html>
