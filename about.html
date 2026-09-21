@@ -4,10 +4,10 @@
 <meta name="color-scheme" content="dark">
 <title>About</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"><style>
 :root{
-  --field:#07151A; --panel:#0D2228; --panel-2:#102A31;
-  --line:#244047;
-  --chalk:#EAF0F6; --muted:#8199B0; --accent:#52D7CF;
-  --gain:#2E8C78; --loss:#A84F55;
+  --field:#08161B; --panel:#102A31; --panel-2:#173A44;
+  --line:#1F5058;
+  --chalk:#EAF0F6; --muted:#8199B0; --accent:#3FD0C9;
+  --gain:#8CC63F; --loss:#E8615C;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--field);color:var(--chalk);
@@ -17,17 +17,17 @@ body{margin:0;background:var(--field);color:var(--chalk);
 a{color:var(--accent);text-decoration:none}
 header{border-bottom:1px solid var(--line);background:var(--panel);
   position:sticky;top:0;z-index:5}
-.wrap{max-width:1500px;margin:0 auto;padding:0 18px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
 .brand{display:flex;align-items:baseline;gap:12px;padding:14px 0 0}
 .brand h1{font-weight:700;font-size:22px;letter-spacing:.14em;
   text-transform:uppercase;margin:0}
 .brand .stamp{font-size:11px;color:var(--muted);letter-spacing:.08em}
-nav{display:flex;gap:8px;padding:10px 0 0}
+nav{display:flex;gap:4px;padding:10px 0 0}
 nav a{padding:8px 14px;border-radius:6px 6px 0 0;font-size:13px;
   letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
   font-weight:500}
-nav a.on{background:var(--panel-2);color:var(--accent);
-  box-shadow:none}
+nav a.on{background:var(--field);color:var(--chalk);
+  box-shadow:inset 0 2px 0 var(--accent)}
 main{padding:22px 0 60px}
 .note{color:var(--muted);font-size:13px;margin:0 0 18px;max-width:70ch}
 h2{font-weight:700;font-size:16px;letter-spacing:.12em;
@@ -184,8 +184,8 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:12px;
 </style></head>
 <body><header><div class="wrap">
 <div class="brand"><h1>Projections</h1>
-<span class="stamp">NCAA FB &middot; built Sep 20, 2026 10:42</span></div>
-<nav><a href="index.html" class="">Games</a><a href="ev.html" class="">Market</a><a href="teams.html" class="">Teams</a><a href="tracking.html" class="">Tracking</a><a href="intelligence.html" class="">INTEL</a><a href="about.html" class="on">About</a></nav></div></header>
+<span class="stamp">NCAA FB &middot; built Sep 20, 2026 19:01</span></div>
+<nav><a href="index.html" class="">Games</a><a href="ev.html" class="">Market</a><a href="teams.html" class="">Teams</a><a href="tracking.html" class="">Tracking</a><a href="about.html" class="on">About</a></nav></div></header>
 <main><div class="wrap"><div class='toc'><a href='#values'>Every value on this site</a><a href='#ep'>The expected points model</a><a href='#attr'>Attributing plays to players</a><a href='#shrink'>Shrinkage</a><a href='#proj'>Team and game projections</a><a href='#market'>Market comparison and EV</a><a href='#schema'>Data model</a><a href='#limits'>Known limitations</a></div><div class='prose'>
 <p>This site publishes output from a college football model built from
 play-by-play data. Everything below describes how a number gets made, so you
@@ -273,8 +273,9 @@ game.</li>
 projections only through their quarterback.</li>
 <li>Defensive player value is splash-play EPA — it measures playmaking, not
 per-snap contribution.</li>
-<li>Ratings use the prior season only. Nothing here learns from the current
-season's results yet.</li>
+<li>Pregame ratings begin from prior-season strength and roster projections, then
+add a shrunk current-season residual correction as completed games accumulate.
+The Tracking page audits whether that in-season layer improved each logged game.</li>
 <li>No injury, weather, travel, or coaching-change information.</li>
 <li>Totals in extreme mismatches are the least reliable output.</li>
 </ul>
